@@ -45,7 +45,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
     if (_loan.taken && _loan.returned) {
       return 'Dikembalian';
     }
-    if (_loan.taken && _loan.returned) {
+    if (_loan.taken) {
       return 'Dipinjamkan';
     } else {
       return 'Menunggu';
