@@ -4,8 +4,11 @@ import 'package:perpus_bi/data/models/book_model.dart';
 import 'package:perpus_bi/data/utils/api_utils.dart';
 
 class BooksApi {
-  static Future<List<Book>> getAllBooks() async {
-    final result = await ApiUtils.getClient().get('/books');
+  static Future<List<Book>> getAllBooks({String? search}) async {
+    final result = await ApiUtils.getClient().get(
+      '/books',
+      queryParameters: {'search': search},
+    );
 
     if (result.response?.data.length < 1) {
       return [];

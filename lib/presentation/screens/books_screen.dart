@@ -6,6 +6,7 @@ import 'package:perpus_bi/presentation/widgets/book_list_widget.dart';
 import 'package:perpus_bi/presentation/widgets/screen_label_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:perpus_bi/presentation/widgets/search_bar_widget.dart';
 
 class BooksScreen extends StatefulWidget {
   const BooksScreen({super.key});
@@ -38,7 +39,7 @@ class _BooksScreenState extends State<BooksScreen> {
       isLoading = true;
     });
 
-    _books = await BooksApi.getAllBooks();
+    _books = await BooksApi.getAllBooks(search: _searchController.text);
 
     if (!mounted) {
       return;
@@ -71,6 +72,13 @@ class _BooksScreenState extends State<BooksScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ScreenLabelWidget(label: 'Daftar Buku'),
+                          SearchBarWidget(
+                            searchController: _searchController,
+                            hintText: 'Cari buku....',
+                            onSubmitted: (submitted) {
+                              _loadAllBooks();
+                            },
+                          ),
                           isLoading
                               ? Padding(
                                 padding: const EdgeInsets.all(32.0),
