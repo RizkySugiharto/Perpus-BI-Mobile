@@ -1,3 +1,4 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:perpus_bi/data/models/account_model.dart';
 import 'package:perpus_bi/data/notifiers/alert_notifiers.dart';
@@ -33,6 +34,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _onSaveButtonPressed() async {
+    if (_emailController.text.isEmpty) {
+      return AlertBannerUtils.showAlertBanner(
+        context,
+        message: 'Field email tidak boleh kosong.',
+        alertType: AlertBannerType.error,
+      );
+    } else if (!EmailValidator.validate(_emailController.text)) {
+      return AlertBannerUtils.showAlertBanner(
+        context,
+        message: 'Email tidak valid. Coba gunakan email lainnya.',
+        alertType: AlertBannerType.error,
+      );
+    }
+
     setState(() {
       _isSaving = true;
     });
@@ -42,6 +57,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) {
       return;
     }
+
+    if (_account == Account.none) {
+      AlertBannerUtils.showAlertBanner(
+        context,
+        message: 'Gagal menyimpan data. Coba Lagi.',
+        alertType: AlertBannerType.error,
+      );
+    } else {
+      _emailController.text = _account.email;
+      AccountStatic.setByAccount(_account);
+
+      AlertBannerUtils.showAlertBanner(
+        context,
+        message: 'Berhasil menyimpan data profil',
+        alertType: AlertBannerType.success,
+      );
+    }
+
+    _emailController.text = _account.email;
+    AccountStatic.setByAccount(_account);
 
     setState(() {
       _isSaving = false;
@@ -62,7 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (_account == Account.none) {
       AlertBannerUtils.showAlertBanner(
         context,
-        message: 'Gagal Menyimpan. Coba Lagi.',
+        message: 'Gagal mengambil data. Coba Lagi.',
         alertType: AlertBannerType.error,
       );
     } else {
@@ -106,33 +141,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             margin: const EdgeInsets.all(16),
                             padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                InputTextWidget(
-                                  label: 'ID Akun',
-                                  textController: TextEditingController(
-                                    text: _account.accountId.toString(),
-                                  ),
-                                  readOnly: true,
-                                ),
-                                const SizedBox(height: 12),
-                                InputTextWidget(
-                                  label: 'Email',
-                                  textController: _emailController,
-                                ),
-                                const SizedBox(height: 12),
-                                InputTextWidget(
-                                  label: 'Role',
-                                  textController: TextEditingController(
-                                    text: _account.role,
-                                  ),
-                                  readOnly: true,
-                                ),
-                                const SizedBox(height: 22),
-                                _buildSaveButton(),
-                              ],
-                            ),
+                            child:
+                                _isLoading
+                                    ? Padding(
+                                      padding: const EdgeInsets.all(32.0),
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    )
+                                    : Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        InputTextWidget(
+                                          label: 'ID Akun',
+                                          textController: TextEditingController(
+                                            text: _account.accountId.toString(),
+                                          ),
+                                          readOnly: true,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        InputTextWidget(
+                                          label: 'Email',
+                                          textController: _emailController,
+                                        ),
+                                        const SizedBox(height: 12),
+                                        InputTextWidget(
+                                          label: 'Role',
+                                          textController: TextEditingController(
+                                            text: _account.role,
+                                          ),
+                                          readOnly: true,
+                                        ),
+                                        const SizedBox(height: 22),
+                                        _buildSaveButton(),
+                                      ],
+                                    ),
                           ),
                         ],
                       ),

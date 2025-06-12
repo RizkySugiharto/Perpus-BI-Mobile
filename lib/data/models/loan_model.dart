@@ -6,7 +6,6 @@ class Loan {
   final DateTime returnDate;
   final bool taken;
   final bool returned;
-  final DateTime createdAt;
   final DateTime? deletedAt;
   final int? deletedBy;
 
@@ -18,7 +17,6 @@ class Loan {
     returnDate: DateTime(0),
     taken: false,
     returned: false,
-    createdAt: DateTime(0),
     deletedAt: DateTime(0),
     deletedBy: 0,
   );
@@ -31,7 +29,6 @@ class Loan {
     required this.returnDate,
     required this.taken,
     required this.returned,
-    required this.createdAt,
     this.deletedAt,
     this.deletedBy,
   });
@@ -45,7 +42,6 @@ class Loan {
       returnDate: DateTime.parse(json['return_date'] as String),
       taken: json['taken'] as bool,
       returned: json['returned'] as bool,
-      createdAt: DateTime.parse(json['created_at'] as String),
       deletedAt:
           json['deleted_at'] != null
               ? DateTime.parse(json['deleted_at'] as String)

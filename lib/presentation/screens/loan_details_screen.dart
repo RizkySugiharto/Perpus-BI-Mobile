@@ -1,7 +1,9 @@
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:perpus_bi/data/models/loan_model.dart';
+import 'package:perpus_bi/data/notifiers/alert_notifiers.dart';
 import 'package:perpus_bi/data/providers/loans_api.dart';
+import 'package:perpus_bi/presentation/utils/alert_banner_utils.dart';
 import 'package:perpus_bi/presentation/widgets/header_widget.dart';
 import 'package:perpus_bi/presentation/widgets/navbar_widget.dart';
 import 'package:perpus_bi/presentation/widgets/screen_label_widget.dart';
@@ -17,6 +19,7 @@ class LoanDetailsScreen extends StatefulWidget {
 
 class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
   final dateFormatter = DateFormat('yyyy-MM-dd');
+  bool _isLoading = false;
   Loan _loan = Loan.none;
 
   @override
@@ -28,13 +31,29 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
   }
 
   Future<void> _loadLoan() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     int loanId = ModalRoute.of(context)?.settings.arguments as int;
     _loan = await LoansApi.getSingleLoan(loanId);
 
     if (!mounted) {
       return;
     }
-    setState(() {});
+
+    if (_loan == Loan.none) {
+      AlertBannerUtils.popWithAlertBanner(
+        context,
+        message: "Data peminjaman tidak ditemukan.",
+        alertType: AlertBannerType.error,
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _onRefresh() async {
@@ -43,7 +62,7 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
 
   String _getLoanStatus() {
     if (_loan.taken && _loan.returned) {
-      return 'Dikembalian';
+      return 'Dikembalikan';
     } else if (_loan.taken) {
       return 'Dipinjamkan';
     } else {
@@ -73,38 +92,45 @@ class _LoanDetailsScreenState extends State<LoanDetailsScreen> {
                             label: 'Detail Peminjaman',
                             canGoBack: true,
                           ),
-                          Container(
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            margin: const EdgeInsets.all(16),
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              spacing: 16,
-                              children: [
-                                _buildItemData(
-                                  'ID Peminjaman',
-                                  _loan.loanId.toString(),
+                          _isLoading
+                              ? Padding(
+                                padding: const EdgeInsets.all(32.0),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
                                 ),
-                                _buildItemData(
-                                  'ID Buku',
-                                  _loan.bookId.toString(),
+                              )
+                              : Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                _buildItemData(
-                                  'Tanggal Peminjaman',
-                                  dateFormatter.format(_loan.loanDate),
+                                margin: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  spacing: 16,
+                                  children: [
+                                    _buildItemData(
+                                      'ID Peminjaman',
+                                      _loan.loanId.toString(),
+                                    ),
+                                    _buildItemData(
+                                      'ID Buku',
+                                      _loan.bookId.toString(),
+                                    ),
+                                    _buildItemData(
+                                      'Tanggal Peminjaman',
+                                      dateFormatter.format(_loan.loanDate),
+                                    ),
+                                    _buildItemData(
+                                      'Tanggal Pengembalian',
+                                      dateFormatter.format(_loan.returnDate),
+                                    ),
+                                    _buildItemData('Status', _getLoanStatus()),
+                                  ],
                                 ),
-                                _buildItemData(
-                                  'Tanggal Pengembalian',
-                                  dateFormatter.format(_loan.returnDate),
-                                ),
-                                _buildItemData('Status', _getLoanStatus()),
-                              ],
-                            ),
-                          ),
+                              ),
                         ],
                       ),
                     ),

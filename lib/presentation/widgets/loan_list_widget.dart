@@ -113,8 +113,7 @@ class _LoanListWidgetState extends State<LoanListWidget> {
   Color _getLoanStatusColor(Loan loan) {
     if (loan.taken && loan.returned) {
       return Colors.lightGreen;
-    }
-    if (loan.taken) {
+    } else if (loan.taken) {
       return Colors.red;
     } else {
       return Colors.blue;

@@ -1,3 +1,4 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:intl/intl.dart';
 import 'package:perpus_bi/data/constants/route_constants.dart';
@@ -51,7 +52,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _onRegisterPressed() async {
-    if (!context.mounted || isLoading) {
+    if (isLoading) {
       return;
     }
 
@@ -63,6 +64,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
       AlertBannerUtils.showAlertBanner(
         context,
         message: 'Mohon isi semuanya',
+        alertType: AlertBannerType.error,
+      );
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    } else if (!EmailValidator.validate(_emailController.text)) {
+      AlertBannerUtils.showAlertBanner(
+        context,
+        message: 'Email tidak valid. Coba gunakan email lainnya.',
+        alertType: AlertBannerType.error,
+      );
+      setState(() {
+        isLoading = false;
+      });
+      return;
+    } else if (_passwordController.text.length < 8) {
+      AlertBannerUtils.showAlertBanner(
+        context,
+        message: 'Password harus terdiri dari 8 huruf atau lebih',
         alertType: AlertBannerType.error,
       );
       setState(() {

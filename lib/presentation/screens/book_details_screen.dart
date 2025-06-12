@@ -1,7 +1,9 @@
 import 'package:google_fonts/google_fonts.dart';
 import 'package:perpus_bi/data/constants/route_constants.dart';
 import 'package:perpus_bi/data/models/book_model.dart';
+import 'package:perpus_bi/data/notifiers/alert_notifiers.dart';
 import 'package:perpus_bi/data/providers/books_api.dart';
+import 'package:perpus_bi/presentation/utils/alert_banner_utils.dart';
 import 'package:perpus_bi/presentation/widgets/header_widget.dart';
 import 'package:perpus_bi/presentation/widgets/navbar_widget.dart';
 import 'package:perpus_bi/presentation/widgets/screen_label_widget.dart';
@@ -17,6 +19,7 @@ class BookDetailsScreen extends StatefulWidget {
 
 class _BookDetailsScreenState extends State<BookDetailsScreen> {
   Book _book = Book.none;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -35,13 +38,29 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   }
 
   Future<void> _loadBook() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     int bookId = ModalRoute.of(context)?.settings.arguments as int;
     _book = await BooksApi.getSingleBook(bookId);
 
     if (!mounted) {
       return;
     }
-    setState(() {});
+
+    if (_book == Book.none) {
+      AlertBannerUtils.popWithAlertBanner(
+        context,
+        message: "Data buku tidak ditemukan.",
+        alertType: AlertBannerType.error,
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   Future<void> _onRefresh() async {
@@ -67,7 +86,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           ScreenLabelWidget(
-                            label: 'Pinjam Buku',
+                            label: 'Detail Buku',
                             canGoBack: true,
                           ),
                           Container(
@@ -78,40 +97,55 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                             ),
                             margin: const EdgeInsets.all(16),
                             padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _book.title,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Pengarang: ${_book.author}',
-                                  style: GoogleFonts.poppins(fontSize: 16),
-                                ),
-                                Text(
-                                  'Penerbit: ${_book.publisher}',
-                                  style: GoogleFonts.poppins(fontSize: 16),
-                                ),
-                                Text(
-                                  'Tahun Terbit: ${_book.publishedYear}',
-                                  style: GoogleFonts.poppins(fontSize: 16),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Stok: ${_book.stock}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.deepOrangeAccent,
-                                  ),
-                                ),
-                              ],
-                            ),
+                            child:
+                                _isLoading
+                                    ? Padding(
+                                      padding: const EdgeInsets.all(32.0),
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    )
+                                    : Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _book.title,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          'Pengarang: ${_book.author}',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Penerbit: ${_book.publisher}',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Tahun Terbit: ${_book.publishedYear}',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          'Stok: ${_book.stock}',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.deepOrangeAccent,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(16),
@@ -124,14 +158,16 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   backgroundColor:
-                                      _book.stock > 0
+                                      !_isLoading && _book.stock > 0
                                           ? Colors.deepOrangeAccent
                                           : Colors.black54,
                                   foregroundColor: Colors.white,
                                   overlayColor: Colors.black38,
                                 ),
                                 onPressed:
-                                    _book.stock > 0 ? _onRequestPressed : () {},
+                                    !_isLoading && _book.stock > 0
+                                        ? _onRequestPressed
+                                        : () {},
                                 child: Text(
                                   'Request Peminjaman',
                                   style: GoogleFonts.poppins(
